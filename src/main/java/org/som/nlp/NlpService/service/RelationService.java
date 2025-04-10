@@ -8,6 +8,7 @@ import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
+import edu.stanford.nlp.semgraph.SemanticGraphEdge;
 import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TreeCoreAnnotations;
@@ -72,59 +73,58 @@ public class RelationService {
      * @return A list of maps, each representing a sentence's annotations.
      */
     private List<Map<String, Object>> processSentences(Annotation document) {
-        List<CoreMap> sentenceList = document.get(CoreAnnotations.SentencesAnnotation.class);
-        List<Map<String, Object>> sentences = new ArrayList<>();
+            List<CoreMap> sentenceList = document.get(CoreAnnotations.SentencesAnnotation.class);
+            List<Map<String, Object>> sentences = new ArrayList<>();
 
-        for (CoreMap sentence : sentenceList) {
-            Map<String, Object> sentenceData = new HashMap<>();
+            for (CoreMap sentence : sentenceList) {
+                Map<String, Object> sentenceData = new HashMap<>();
 
-            // Tokens with POS tags and lemmas
-            List<Map<String, String>> tokens = new ArrayList<>();
-            for (CoreLabel token : sentence.get(CoreAnnotations.TokensAnnotation.class)) {
-                tokens.add(Map.of(
-                        "token", token.get(CoreAnnotations.TextAnnotation.class),
-                        "pos", token.get(CoreAnnotations.PartOfSpeechAnnotation.class),
-                        "lemma", token.get(CoreAnnotations.LemmaAnnotation.class)
-                ));
-            }
-            sentenceData.put("tokens", tokens);
-
-            // Named Entities
-            List<Map<String, String>> entities = new ArrayList<>();
-            for (CoreLabel token : sentence.get(CoreAnnotations.TokensAnnotation.class)) {
-                String ne = token.get(CoreAnnotations.NamedEntityTagAnnotation.class);
-                if (!"O".equals(ne)) {
-                    entities.add(Map.of(
-                            "entity", token.get(CoreAnnotations.TextAnnotation.class),
-                            "type", ne
-                    ));
+                // Extract tokens, POS tags, and lemmas
+                List<Map<String, String>> tokens = new ArrayList<>();
+                for (CoreLabel token : sentence.get(CoreAnnotations.TokensAnnotation.class)) {
+                    String word = token.get(CoreAnnotations.TextAnnotation.class);
+                    String pos = token.get(CoreAnnotations.PartOfSpeechAnnotation.class);
+                    String lemma = token.get(CoreAnnotations.LemmaAnnotation.class);
+                    tokens.add(Map.of("token", word, "pos", pos, "lemma", lemma));
                 }
+                sentenceData.put("tokens", tokens);
+
+                // Extract named entities
+                List<Map<String, String>> entities = new ArrayList<>();
+                for (CoreLabel token : sentence.get(CoreAnnotations.TokensAnnotation.class)) {
+                    String word = token.get(CoreAnnotations.TextAnnotation.class);
+                    String ne = token.get(CoreAnnotations.NamedEntityTagAnnotation.class);
+                    if (!"O".equals(ne)) {
+                        entities.add(Map.of("entity", word, "type", ne));
+                    }
+                }
+                sentenceData.put("entities", entities);
+
+                // Extract dependency relations
+                SemanticGraph depGraph = sentence.get(SemanticGraphCoreAnnotations.EnhancedPlusPlusDependenciesAnnotation.class);
+                List<Map<String, String>> dependencies = new ArrayList<>();
+                if (depGraph != null) { // Add null check
+                    for (SemanticGraphEdge edge : depGraph.edgeListSorted()) {
+                        String relation = edge.getRelation().toString();
+                        String governor = edge.getGovernor().word();
+                        String dependent = edge.getDependent().word();
+                        dependencies.add(Map.of("relation", relation, "governor", governor, "dependent", dependent));
+                    }
+                }
+                sentenceData.put("dependencies", dependencies);
+
+                // Extract constituency parse tree
+                Tree tree = sentence.get(TreeCoreAnnotations.TreeAnnotation.class);
+                sentenceData.put("parseTree", tree.toString());
+
+                // Extract sentiment
+                String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
+                sentenceData.put("sentiment", sentiment != null ? sentiment : "Unknown");
+
+                sentences.add(sentenceData);
             }
-            sentenceData.put("entities", entities);
-
-            // Dependency Relations
-            SemanticGraph depGraph = sentence.get(SemanticGraphCoreAnnotations.CollapsedCCProcessedDependenciesAnnotation.class);
-            List<Map<String, String>> dependencies = depGraph.edgeListSorted().stream()
-                    .map(edge -> Map.of(
-                            "relation", edge.getRelation().toString(),
-                            "governor", edge.getGovernor().word(),
-                            "dependent", edge.getDependent().word()
-                    ))
-                    .collect(Collectors.toList());
-            sentenceData.put("dependencies", dependencies);
-
-            // Constituency Parse Tree
-            Tree tree = sentence.get(TreeCoreAnnotations.TreeAnnotation.class);
-            sentenceData.put("parseTree", tree.toString());
-
-            // Sentiment
-            String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
-            sentenceData.put("sentiment", sentiment != null ? sentiment : "Unknown");
-
-            sentences.add(sentenceData);
+            return sentences;
         }
-        return sentences;
-    }
 
     /**
      * Extracts coreference chains from the document.

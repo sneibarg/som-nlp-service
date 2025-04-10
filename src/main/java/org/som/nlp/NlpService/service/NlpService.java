@@ -94,21 +94,23 @@ public class NlpService {
         pipeline.annotate(document);
         List<List<Map<String, Object>>> sentenceDependencies = new ArrayList<>();
         for (CoreMap sentence : document.get(CoreAnnotations.SentencesAnnotation.class)) {
-            SemanticGraph dependencyGraph = sentence.get(SemanticGraphCoreAnnotations.CollapsedCCProcessedDependenciesAnnotation.class);
+            SemanticGraph dependencyGraph = sentence.get(SemanticGraphCoreAnnotations.EnhancedPlusPlusDependenciesAnnotation.class);
             List<Map<String, Object>> dependencies = new ArrayList<>();
-            for (SemanticGraphEdge edge : dependencyGraph.edgeListSorted()) {
-                String relation = edge.getRelation().toString();
-                String governor = edge.getGovernor().word();
-                int governorIndex = edge.getGovernor().index();
-                String dependent = edge.getDependent().word();
-                int dependentIndex = edge.getDependent().index();
-                dependencies.add(Map.of(
-                        "relation", relation,
-                        "governor", governor,
-                        "governorIndex", governorIndex,
-                        "dependent", dependent,
-                        "dependentIndex", dependentIndex
-                ));
+            if (dependencyGraph != null) { // Add null check
+                for (SemanticGraphEdge edge : dependencyGraph.edgeListSorted()) {
+                    String relation = edge.getRelation().toString();
+                    String governor = edge.getGovernor().word();
+                    int governorIndex = edge.getGovernor().index();
+                    String dependent = edge.getDependent().word();
+                    int dependentIndex = edge.getDependent().index();
+                    dependencies.add(Map.of(
+                            "relation", relation,
+                            "governor", governor,
+                            "governorIndex", governorIndex,
+                            "dependent", dependent,
+                            "dependentIndex", dependentIndex
+                    ));
+                }
             }
             sentenceDependencies.add(dependencies);
         }
