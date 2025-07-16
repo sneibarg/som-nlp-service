@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://extjwnl.googlecode.com/svn/trunk/extjwnl/src/main/resources/net/sf/extjwnl/util/extjwnl-properties.dtd">
+<properties>
+    <property key="dictionary_path" value="PATH_TO_YOUR_WORDNET_FILES"/>
+    <property key="dictionary_file_type" value="WN"/>
+    <property key="morphological_processor_class_name" value="net.sf.extjwnl.dictionary.morph.DefaultMorphologicalProcessor"/>
+    <property key="use_memory_mapped_buffers" value="false"/>
+    <property key="load_on_startup" value="false"/>
+</properties>
