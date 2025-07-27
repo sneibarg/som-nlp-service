@@ -38,6 +38,16 @@ public class NlpController {
         }
     }
 
+    @PostMapping("/openie-relations")
+    public ResponseEntity<List<Map<String, Object>>> getOpenIERelations(@RequestBody String text) {
+        try {
+            List<Map<String, Object>> openIeRelations = nlpService.getOpenIERelationsWithConfidence(text);
+            return ResponseEntity.ok(openIeRelations);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(List.of(Map.of("error", e.getMessage())));
+        }
+    }
+
     @PostMapping("/ner")
     public ResponseEntity<List<Map<String, String>>> getNamedEntities(@RequestBody String text) {
         return ResponseEntity.ok(nlpService.getNamedEntities(text));

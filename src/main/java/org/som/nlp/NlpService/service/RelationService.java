@@ -22,17 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Service that extracts all available linguistic annotations from text using the Stanford CoreNLP library.
- */
 @Service
 public class RelationService {
     private final StanfordCoreNLP pipeline;
 
-    /**
-     * Constructs the RelationService with an injected StanfordCoreNLP pipeline.
-     * @param pipeline The pre-configured StanfordCoreNLP pipeline.
-     */
     @Autowired
     public RelationService(StanfordCoreNLP pipeline) {
         this.pipeline = pipeline;
@@ -44,23 +37,15 @@ public class RelationService {
      * @return A map containing sentence-level and document-level annotations.
      */
     public Map<String, Object> getAllRelations(String text) {
-        // Validate input
         if (text == null || text.trim().isEmpty()) {
             throw new IllegalArgumentException("Input text cannot be null or empty");
         }
 
-        // Annotate the text
         Annotation document = new Annotation(text);
         pipeline.annotate(document);
-
-        // Initialize the result map
         Map<String, Object> result = new HashMap<>();
-
-        // Extract sentence-level data
         List<Map<String, Object>> sentences = processSentences(document);
         result.put("sentences", sentences);
-
-        // Extract document-level coreferences
         Map<String, List<String>> coreferences = processCoreferences(document);
         result.put("coreferences", coreferences);
 
@@ -78,8 +63,6 @@ public class RelationService {
 
             for (CoreMap sentence : sentenceList) {
                 Map<String, Object> sentenceData = new HashMap<>();
-
-                // Extract tokens, POS tags, and lemmas
                 List<Map<String, String>> tokens = new ArrayList<>();
                 for (CoreLabel token : sentence.get(CoreAnnotations.TokensAnnotation.class)) {
                     String word = token.get(CoreAnnotations.TextAnnotation.class);
@@ -89,7 +72,6 @@ public class RelationService {
                 }
                 sentenceData.put("tokens", tokens);
 
-                // Extract named entities
                 List<Map<String, String>> entities = new ArrayList<>();
                 for (CoreLabel token : sentence.get(CoreAnnotations.TokensAnnotation.class)) {
                     String word = token.get(CoreAnnotations.TextAnnotation.class);
@@ -100,7 +82,6 @@ public class RelationService {
                 }
                 sentenceData.put("entities", entities);
 
-                // Extract dependency relations
                 SemanticGraph depGraph = sentence.get(SemanticGraphCoreAnnotations.EnhancedPlusPlusDependenciesAnnotation.class);
                 List<Map<String, String>> dependencies = new ArrayList<>();
                 if (depGraph != null) { // Add null check
@@ -112,12 +93,8 @@ public class RelationService {
                     }
                 }
                 sentenceData.put("dependencies", dependencies);
-
-                // Extract constituency parse tree
                 Tree tree = sentence.get(TreeCoreAnnotations.TreeAnnotation.class);
                 sentenceData.put("parseTree", tree.toString());
-
-                // Extract sentiment
                 String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
                 sentenceData.put("sentiment", sentiment != null ? sentiment : "Unknown");
 

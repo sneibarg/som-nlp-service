@@ -6,6 +6,8 @@ import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.naturalli.NaturalLogicAnnotations;
 import edu.stanford.nlp.pipeline.Annotation;
+import edu.stanford.nlp.pipeline.CoreDocument;
+import edu.stanford.nlp.pipeline.CoreSentence;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
@@ -81,11 +83,19 @@ public class NlpService {
         pipeline.annotate(document);
         List<List<String>> sentences = new ArrayList<>();
         for (CoreMap sentence : document.get(CoreAnnotations.SentencesAnnotation.class)) {
-            List<String> tokens = sentence.get(CoreAnnotations.TokensAnnotation.class).stream()
+            List<String> tokens = sentence.get(CoreAnnotations.TokensAnnotation.class)
+                    .stream()
                     .map(token -> token.get(CoreAnnotations.TextAnnotation.class))
                     .collect(Collectors.toList());
             sentences.add(tokens);
         }
+        return Map.of("sentences", sentences);
+    }
+
+    public Map<String, List<CoreSentence>> split(String text) {
+        CoreDocument document = new CoreDocument(text);
+        pipeline.annotate(document);
+        List<CoreSentence> sentences = document.sentences();
         return Map.of("sentences", sentences);
     }
 
