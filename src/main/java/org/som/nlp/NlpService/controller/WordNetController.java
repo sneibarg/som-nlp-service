@@ -1,4 +1,4 @@
-package org.som.nlp.NlpService.service;
+package org.som.nlp.NlpService.controller;
 
 import net.sf.extjwnl.JWNLException;
 import net.sf.extjwnl.data.POS;
@@ -8,6 +8,7 @@ import org.som.nlp.NlpService.config.WordNetParser;
 import org.som.nlp.NlpService.dto.SynsetDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,12 +18,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
+@RequestMapping("/wordnet")
 public class WordNetController {
 
     @Autowired
     private WordNetParser wordNetParser;
 
-    @GetMapping("/api/v1/wordnet")
+    @GetMapping("/synsets")
     public Map<String, Object> getWordData(@RequestParam String word,
                                            @RequestParam String pos) throws JWNLException {
         Map<String, Object> response = new HashMap<>();

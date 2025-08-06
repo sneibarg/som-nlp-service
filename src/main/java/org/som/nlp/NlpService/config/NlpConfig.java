@@ -19,7 +19,6 @@ public class NlpConfig {
     @Bean
     public StanfordCoreNLP stanfordCoreNLP() {
         Properties props = new Properties();
-        // Updated annotator list including 'natlog' for 'openie' support
         props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner,parse,depparse,natlog,coref,sentiment,openie");
         try {
             return new StanfordCoreNLP(props);
