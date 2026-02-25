@@ -1,5 +1,12 @@
+debug: false
 server:
   port: 8069
+spring:
+  devtools:
+    restart:
+      enabled: false
+      additional-exclude: "**/target/**,**/generated/**,**/build/**"
+      trigger-file: .restart
 ontology:
   km-server: http://malboji:8080/km
   cyc-server: http://dragon:3602
