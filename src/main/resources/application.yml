@@ -1,6 +1,6 @@
 debug: false
 server:
-  port: 8069
+  port: 9081
 spring:
   devtools:
     restart:
