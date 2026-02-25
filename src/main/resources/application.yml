@@ -1,0 +1,5 @@
+server:
+  port: 8069
+ontology:
+  km-server: http://malboji:8080/km
+  cyc-server: http://dragon:3602
