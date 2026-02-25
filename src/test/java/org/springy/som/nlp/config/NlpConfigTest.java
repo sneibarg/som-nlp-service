@@ -1,15 +1,15 @@
-package com.springmud.nlp.NlpService.config;
+package org.springy.som.nlp.config;
 
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import org.junit.jupiter.api.Test;
-import org.som.nlp.NlpService.NlpServiceApplication;
+import org.springy.som.nlp.NlpServiceApplication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(classes = NlpServiceApplication.class)
+@SpringBootTest(classes = NlpServiceApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class NlpConfigTest {
 
     @Autowired
@@ -17,10 +17,8 @@ class NlpConfigTest {
 
     @Test
     void testStanfordCoreNLPBeanCreation() {
-        // Act
         StanfordCoreNLP stanfordCoreNLP = context.getBean(StanfordCoreNLP.class);
 
-        // Assert
         assertNotNull(stanfordCoreNLP, "StanfordCoreNLP bean should be created");
     }
 }

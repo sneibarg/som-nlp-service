@@ -1,11 +1,10 @@
-package com.springmud.nlp.NlpService;
+package org.springy.som.nlp;
 
 import org.junit.jupiter.api.Test;
-import org.som.nlp.NlpService.NlpServiceApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ContextConfiguration(classes = NlpServiceApplication.class)
 class NlpServiceApplicationTests {
 

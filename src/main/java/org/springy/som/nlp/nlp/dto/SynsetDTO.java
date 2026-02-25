@@ -1,4 +1,4 @@
-package org.som.nlp.NlpService.dto;
+package org.springy.som.nlp.nlp.dto;
 
 
 import lombok.Data;

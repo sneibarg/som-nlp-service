@@ -1,4 +1,4 @@
-package org.som.nlp.NlpService.service;
+package org.springy.som.nlp.nlp.service;
 
 import edu.stanford.nlp.coref.CorefCoreAnnotations;
 import edu.stanford.nlp.coref.data.CorefChain;

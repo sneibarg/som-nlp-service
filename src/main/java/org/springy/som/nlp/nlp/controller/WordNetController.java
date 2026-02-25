@@ -1,11 +1,11 @@
-package org.som.nlp.NlpService.controller;
+package org.springy.som.nlp.nlp.controller;
 
 import net.sf.extjwnl.JWNLException;
 import net.sf.extjwnl.data.POS;
 import net.sf.extjwnl.data.Synset;
 import net.sf.extjwnl.data.list.PointerTargetNode;
-import org.som.nlp.NlpService.config.WordNetParser;
-import org.som.nlp.NlpService.dto.SynsetDTO;
+import org.springy.som.nlp.nlp.config.WordNetParser;
+import org.springy.som.nlp.nlp.dto.SynsetDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

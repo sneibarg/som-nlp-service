@@ -1,4 +1,4 @@
-package com.springmud.nlp.NlpService.service;
+package org.springy.som.nlp.service;
 
 import edu.stanford.nlp.coref.CorefCoreAnnotations;
 import edu.stanford.nlp.coref.data.CorefChain;
@@ -17,8 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.som.nlp.NlpService.service.RelationService;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springy.som.nlp.nlp.service.RelationService;
 
 import java.util.*;
 

@@ -1,4 +1,4 @@
-package org.som.nlp.NlpService.config;
+package org.springy.som.nlp.nlp.config;
 
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import org.springframework.context.annotation.Bean;

@@ -1,4 +1,4 @@
-package org.som.nlp.NlpService.service;
+package org.springy.som.nlp.nlp.service;
 
 import edu.stanford.nlp.coref.CorefCoreAnnotations;
 import edu.stanford.nlp.coref.data.CorefChain;
@@ -13,6 +13,8 @@ import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
 import edu.stanford.nlp.semgraph.SemanticGraphEdge;
 import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
+import edu.stanford.nlp.trees.Tree;
+import edu.stanford.nlp.trees.TreeCoreAnnotations;
 import edu.stanford.nlp.util.CoreMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -146,5 +148,21 @@ public class NlpService {
             }
         }
         return triples;
+    }
+
+    public List<Map<String, String>> getParseTrees(String text) {
+        Annotation document = new Annotation(text);
+        pipeline.annotate(document);
+        List<Map<String, String>> parseTrees = new ArrayList<>();
+        for (CoreMap sentence : document.get(CoreAnnotations.SentencesAnnotation.class)) {
+            Tree tree = sentence.get(TreeCoreAnnotations.TreeAnnotation.class);
+            if (tree != null) {
+                parseTrees.add(Map.of(
+                        "sentence", sentence.toString(),
+                        "parseTree", tree.pennString()
+                ));
+            }
+        }
+        return parseTrees;
     }
 }

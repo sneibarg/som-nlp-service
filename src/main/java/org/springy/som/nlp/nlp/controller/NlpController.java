@@ -1,8 +1,8 @@
-package org.som.nlp.NlpService.controller;
+package org.springy.som.nlp.nlp.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.som.nlp.NlpService.service.NlpService;
-import org.som.nlp.NlpService.service.RelationService;
+import org.springy.som.nlp.nlp.service.NlpService;
+import org.springy.som.nlp.nlp.service.RelationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -66,5 +66,10 @@ public class NlpController {
     @PostMapping("/tokenize")
     public ResponseEntity<Map<String, List<List<String>>>> tokenizeAndSplit(@RequestBody String text) {
         return ResponseEntity.ok(nlpService.tokenizeAndSplit(text));
+    }
+
+    @PostMapping("/parse")
+    public ResponseEntity<List<Map<String, String>>> getParseTrees(@RequestBody String text) {
+        return ResponseEntity.ok(nlpService.getParseTrees(text));
     }
 }

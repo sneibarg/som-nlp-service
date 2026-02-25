@@ -1,4 +1,4 @@
-package org.som.nlp.NlpService.config;
+package org.springy.som.nlp.nlp.config;
 
 import jakarta.annotation.PostConstruct;
 import net.sf.extjwnl.JWNLException;
