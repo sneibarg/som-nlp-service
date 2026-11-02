@@ -23,11 +23,11 @@ spring:
         enabled: false
     ollama:
       # Local Ollama. Point this at the service you are updating.
-      base-url: http://localhost:11434
+      base-url: http://malboji:11434
       init:
         pull-model-strategy: never
       chat:
-        model: gemma4:26b
+        model: gpt-oss:20b
     openai:
       # SpaceXAI OpenAI-compatible API. Spring AI 2.0 includes /v1 in the base URL.
       # "_" means XAI_API_KEY is unset. The judge refuses to call until a real key is present.
