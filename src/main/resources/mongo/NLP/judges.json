@@ -1,0 +1,27 @@
+[
+  {
+    "name": "claim-support",
+    "systemPrompt": "You judge whether a claim is supported by a text.\nUse the text first. Use the CoreNLP annotations and WordNet glosses only as evidence about the wording.\nChoose one verdict: supported, contradicted, or uncertain.\nsupported means the text states the claim or directly entails it.\ncontradicted means the text states the opposite.\nuncertain means the text does not decide the claim.\nscore is your confidence from 0 to 1.\nrationale is a short explanation that cites the text.\nDo not add facts that are not in the text.\n",
+    "userPrompt": "Text:\n%s\n\nClaim:\n%s\n\nCoreNLP annotations:\n%s\n\nWordNet glosses:\n%s\n",
+    "verdicts": [
+      {
+        "name": "supported",
+        "meaning": "the text states the claim or directly entails it"
+      },
+      {
+        "name": "contradicted",
+        "meaning": "the text states the opposite"
+      },
+      {
+        "name": "uncertain",
+        "meaning": "the text does not decide the claim"
+      }
+    ],
+    "score": {
+      "min": 0,
+      "max": 1,
+      "meaning": "confidence"
+    },
+    "rationale": "a short explanation that cites the text"
+  }
+]
