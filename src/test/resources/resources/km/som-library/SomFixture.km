@@ -1,0 +1,7 @@
+(SomLibraryFixture has (library-parent (CoreLibraryFixture)))
+
+(Som-Agentic-Player has (superclasses (Situation)))
+(player-value has (instance-of (Slot)) (fluent-status (*Fluent)))
+(player-derived has (instance-of (Slot)) (fluent-status (*Fluent)))
+(PlayerView has (superclasses (Thing)))
+(every PlayerView has (player-derived ((the player-value of Self))))

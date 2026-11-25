@@ -40,11 +40,11 @@ spring:
   mongodb:
     uri: mongodb://dragon:27017/NLP
 km:
-  # Load these directories, in order, before exposing the initialized engine to the API.
-  component-library: "${KM_COMPONENT_LIBRARY:../som-knowledge-machine/src/resources/km-component-library/rkf-clib/components}"
-  som-component-library: "${SOM_COMPONENT_LIBRARY:../som-knowledge-machine/src/resources/som-component-library}"
+  expression-log:
+    file: "${KM_EXPRESSION_LOG_FILE:logs/km-expressions.log}"
+  # Configuration and component libraries come from the KM engine JAR.
   # Path to a KM file. Relative paths resolve from the application's working directory.
-  # An empty value leaves the two loaded component libraries as the startup KB.
+  # An empty value leaves the configured component libraries as the startup KB.
   knowledge-base: "${KM_KNOWLEDGE_BASE:}"
 ontology:
   km-server: http://malboji:8080/km

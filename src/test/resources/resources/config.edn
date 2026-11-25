@@ -1,0 +1,4 @@
+{:component-libraries
+ ["src/resources/km/core-library"
+  "src/resources/km/specs"
+  "src/resources/km/som-library"]}

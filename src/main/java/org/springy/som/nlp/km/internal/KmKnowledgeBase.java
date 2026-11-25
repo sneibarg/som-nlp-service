@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -13,45 +12,36 @@ import java.nio.file.Path;
 class KmKnowledgeBase {
     private final KmEngineBridge.Session startupSession;
 
-    KmKnowledgeBase(KmEngineBridge bridge,
-                    @Value("${km.component-library}") String componentLibrary,
-                    @Value("${km.som-component-library}") String somComponentLibrary,
-                    @Value("${km.knowledge-base:}") String location) {
-        var coreLoaded = loadLibrary(bridge, bridge.newSession(), componentLibrary, "KM component library");
-        var librariesLoaded = loadLibrary(bridge, coreLoaded, somComponentLibrary, "SOM component library");
+    KmKnowledgeBase(KmEngineBridge bridge, @Value("${km.knowledge-base:}") String location) {
+        var libraries = bridge.configuredLibraries();
+        if (libraries.isEmpty()) {
+            throw new IllegalStateException("KM configuration must select at least one component library");
+        }
+        var librariesLoaded = bridge.newSession();
+        for (var library : libraries) {
+            librariesLoaded = loadLibrary(bridge, librariesLoaded, library);
+        }
         startupSession = location.isBlank() ? librariesLoaded : load(bridge, librariesLoaded, Path.of(location));
     }
 
     /**
-     * Returns the session only after both component libraries and any configured KB have loaded.
+     * Returns the session only after configured component libraries and any optional KB have loaded.
      */
     KmEngineBridge.Session startupSession() {
         return startupSession;
     }
 
     private static KmEngineBridge.Session loadLibrary(KmEngineBridge bridge, KmEngineBridge.Session session,
-                                                       String location, String name) {
-        if (location == null || location.isBlank()) {
-            throw new IllegalStateException(name + " directory is required");
-        }
-        Path directory = Path.of(location).toAbsolutePath().normalize();
-        if (!Files.isDirectory(directory) || !Files.isReadable(directory)) {
-            throw new IllegalStateException(name + " must be a readable directory: " + directory);
-        }
-        try (var files = Files.walk(directory)) {
-            if (files.noneMatch(file -> Files.isRegularFile(file) && file.getFileName().toString().endsWith(".km"))) {
-                throw new IllegalStateException(name + " contains no KM components: " + directory);
-            }
-        } catch (IOException ex) {
-            throw new IllegalStateException("Could not read " + name + ": " + directory, ex);
-        }
-        var result = bridge.loadLibrary(session, directory.toString());
-        if (!result.ok() || !result.errors().isEmpty() || result.answer() == null || "nil".equals(result.answer())) {
+                                                       KmEngineBridge.Library library) {
+        log.info("Loading {}", library.label());
+        var result = bridge.evaluate(session, library.expression());
+        // The configured specs directory intentionally has no .km files and answers nil.
+        if (!result.ok() || !result.errors().isEmpty()) {
             String detail = result.errors().isEmpty() ? result.message() : String.join(", ", result.errors());
-            throw new IllegalStateException("Could not load " + name + " " + directory
+            throw new IllegalStateException("Could not load KM component library " + library.directory()
                     + (detail == null ? "" : ": " + detail));
         }
-        log.info("Loaded {} from {}", name, directory);
+        log.info("Loaded {}", library.label());
         return result.nextSession();
     }
 

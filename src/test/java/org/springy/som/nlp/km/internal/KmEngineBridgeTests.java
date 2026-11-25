@@ -1,13 +1,19 @@
 package org.springy.som.nlp.km.internal;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import ch.qos.logback.core.rolling.RollingFileAppender;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.modulith.test.ApplicationModuleTest;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -30,6 +36,112 @@ class KmEngineBridgeTests {
 
     @Autowired
     private KmController controller;
+
+    @Test
+    void writesCorrelatedSingleLineExpressionsAndOutcomesToTheDedicatedLog() throws Exception {
+        var logger = (Logger) LoggerFactory.getLogger("km.expressions");
+        var captured = new ListAppender<ILoggingEvent>();
+        captured.start();
+        logger.addAppender(captured);
+        try {
+            bridge.evaluate(knowledgeBase.startupSession(), "(1 +\n 2)");
+            bridge.evaluateInSituation(knowledgeBase.startupSession(), "*Global", "(a");
+            assertThrows(RuntimeException.class, () ->
+                    bridge.evaluateInSituation(knowledgeBase.startupSession(), "[", "(1 + 2)"));
+
+            var messages = captured.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
+            assertEquals(6, messages.size());
+            assertTrue(messages.get(0).contains("expression=(1 +\\n 2)"));
+            assertTrue(messages.get(1).contains("success=true"));
+            assertTrue(messages.get(2).contains("situation=*Global expression=(a"));
+            assertTrue(messages.get(3).contains("success=false error=read"));
+            assertTrue(messages.get(5).contains("event=failed"));
+            for (int index = 0; index < messages.size(); index += 2) {
+                String id = messages.get(index).split("id=")[1].split(" ")[0];
+                assertTrue(messages.get(index + 1).contains("id=" + id));
+            }
+            assertTrue(messages.stream().noneMatch(message -> message.contains("\n") || message.contains("\r")));
+            assertFalse(logger.isAdditive());
+            var fileAppender = (RollingFileAppender<?>) logger.getAppender("KM_EXPRESSIONS");
+            assertTrue(fileAppender.isStarted());
+            assertTrue(Files.readString(Path.of(fileAppender.getFile())).contains(messages.get(0)));
+        } finally {
+            logger.detachAppender(captured);
+            captured.stop();
+        }
+    }
+
+    @Test
+    void playerEndpointsKeepFactsAndInferencesInTheirOwnSituations() throws Exception {
+        var service = new KmEngineService(bridge, knowledgeBase);
+        var mvc = MockMvcBuilders.standaloneSetup(new KmController(service)).build();
+
+        for (String player : List.of("PlayerA", "PlayerB")) {
+            String value = player.equals("PlayerA") ? "red" : "blue";
+            mvc.perform(post("/km/players/" + player + "/assertions").contentType("application/json")
+                            .content("{\"expression\":\"(*View has (player-value (" + value + ")))\"}"))
+                    .andExpect(status().isOk());
+        }
+        for (String player : List.of("PlayerA", "PlayerB")) {
+            String value = player.equals("PlayerA") ? "red" : "blue";
+            mvc.perform(post("/km/players/" + player + "/query").contentType("application/json")
+                            .content("{\"expression\":\"(the player-value of *View)\"}"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.answer").value("(" + value + ")"));
+        }
+        assertEquals("(red)", service.evaluatePlayer("*PlayerA", "(the player-value of *View)").answer());
+        assertEquals("nil", service.evaluate("(the player-value of *View)").answer());
+        assertEquals("(*Global)", service.evaluate("(curr-situation)").answer());
+        assertEquals("nil", new KmEngineService(bridge, knowledgeBase)
+                .evaluatePlayer("PlayerA", "(the player-value of *View)").answer());
+    }
+
+    @Test
+    void playerFailureDiscardsPartialFactsAndCreation() {
+        var service = new KmEngineService(bridge, knowledgeBase);
+        assertTrue(service.evaluatePlayer("PlayerA", "(*View has (player-value (red)))").errors().isEmpty());
+
+        assertFalse(service.evaluatePlayer("PlayerA", "(a").ok());
+        assertFalse(service.evaluatePlayer("NewPlayer", "(a").ok());
+        assertFalse(service.evaluate("(the instance-of of *NewPlayer)").answer().contains("Som-Agentic-Player"));
+        assertEquals("(red)", service.evaluatePlayer("PlayerA", "(the player-value of *View) ; trailing comment").answer());
+        assertFalse(service.evaluatePlayer("PlayerA", "(the player-value of *View)) (global-situation)").ok());
+        assertEquals("(*Global)", service.evaluate("(curr-situation)").answer());
+    }
+
+    @Test
+    void playerQueriesDeriveValuesFromGlobalRulesInTheirOwnSituation() {
+        var service = new KmEngineService(bridge, knowledgeBase);
+        for (String player : List.of("PlayerA", "PlayerB")) {
+            String value = player.equals("PlayerA") ? "red" : "blue";
+            var stored = service.evaluatePlayer(player,
+                    "(*DerivedView has (instance-of (PlayerView)) (player-value (" + value + ")))" );
+            assertTrue(stored.ok());
+            assertTrue(stored.errors().isEmpty(), stored.errors()::toString);
+            var derived = service.evaluatePlayer(player, "(the player-derived of *DerivedView)");
+            assertTrue(derived.errors().isEmpty(), derived.errors()::toString);
+            assertEquals("(" + value + ")", derived.answer());
+        }
+        assertEquals("(red)", service.evaluatePlayer("PlayerA", "(the player-derived of *DerivedView)").answer());
+        assertEquals("nil", service.evaluate("(the player-derived of *DerivedView)").answer());
+    }
+
+    @Test
+    void configuredStartupUsesTheBundledSelectionWithoutRewritingPaths() {
+        var libraries = bridge.configuredLibraries();
+
+        assertEquals(List.of("src/resources/km/core-library", "src/resources/km/specs", "src/resources/km/som-library"),
+                libraries.stream().map(KmEngineBridge.Library::directory).toList());
+        assertEquals("(load-lib \"src/resources/km/core-library\" :silent t)", libraries.get(0).expression());
+    }
+
+    @Test
+    void configuredStartupLoadsNestedClasspathComponentsAndExcludesOtherLibraries() {
+        var service = new KmEngineService(bridge, knowledgeBase);
+
+        assertEquals("(violet)", service.evaluate("(the library-color of NestedLibraryFixture)").answer());
+        assertEquals("nil", service.evaluate("(the library-color of ExcludedLibraryFixture)").answer());
+    }
 
     @Test
     void endpointsAssertAndQueryThroughTheInitializedEngine() throws Exception {
@@ -126,8 +238,7 @@ class KmEngineBridgeTests {
     }
 
     private KmKnowledgeBase startupWithFile(Path file) {
-        return new KmKnowledgeBase(bridge, "src/test/resources/km/core-library",
-                "src/test/resources/km/som-library", file.toString());
+        return new KmKnowledgeBase(bridge, file.toString());
     }
 
     @Test

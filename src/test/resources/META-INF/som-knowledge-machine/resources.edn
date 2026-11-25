@@ -1,0 +1,11 @@
+["resources/config.edn"
+ "resources/km/"
+ "resources/km/core-library/"
+ "resources/km/core-library/CoreFixture.km"
+ "resources/km/core-library/nested/"
+ "resources/km/core-library/nested/NestedFixture.km"
+ "resources/km/specs/"
+ "resources/km/som-library/"
+ "resources/km/som-library/SomFixture.km"
+ "resources/km/excluded/"
+ "resources/km/excluded/ExcludedFixture.km"]
