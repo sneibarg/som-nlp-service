@@ -18,6 +18,7 @@
 		<spring-ai.version>2.0.1</spring-ai.version>
 		<spring-modulith.version>2.1.1</spring-modulith.version>
 		<stanford.version>4.6.0</stanford.version>
+		<som-knowledge-machine.version>0.1.2-SNAPSHOT</som-knowledge-machine.version>
 	</properties>
 	<profiles>
 		<profile>
@@ -62,6 +63,11 @@
 		</dependencies>
 	</dependencyManagement>
 	<dependencies>
+		<dependency>
+			<groupId>org.springy.som</groupId>
+			<artifactId>som-knowledge-machine</artifactId>
+			<version>${som-knowledge-machine.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.modulith</groupId>
 			<artifactId>spring-modulith-starter-core</artifactId>
@@ -162,6 +168,18 @@
 			<version>2.3.9</version>
 		</dependency>
 	</dependencies>
+	<repositories>
+		<repository>
+			<id>nexus-snapshots</id>
+			<url>http://dragon:8089/repository/maven-snapshots/</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 	<distributionManagement>
 		<repository>
 			<id>nexus-releases</id>

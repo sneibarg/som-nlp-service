@@ -19,8 +19,11 @@ Direct subpackages of `org.springy.som.nlp` are the modules. `NlpServiceApplicat
 | `wordnet` | `WordNetParser`, `SynsetDTO` | `GET /wordnet/synsets` |
 | `judge` | `JudgeService`, `JudgeCatalog`, `JudgeRequest`, `JudgeVerdict`, `RequestType`, `VerdictType`, `ScoreRange`, `VerdictListing` | `POST /judge`, `/judge/request-types`, `/judge/verdicts` |
 | `ollama` | `OllamaClient`, `OllamaRequest`, `OllamaCompletion`, `OllamaException` | `POST /ollama/completions` |
+| `km` | None; HTTP adapter and engine bridge are internal | `POST /km/query`, `POST /km/assertions` |
 
 Controllers, repositories, configuration, and module-specific exceptions live in `internal`. Another module may use only the public types.
+
+The KM HTTP contract is in `docs/km-api.md`. Startup calls `som.kb/load-lib`, the API behind `(load-lib)`, for `km.component-library`, then `km.som-component-library`, in the same session before creating the API service. A load failure stops startup. An optional `km.knowledge-base` file loads afterward. Both routes use this initialized engine and synchronized, in-memory knowledge base. Successful evaluations retain state; failures discard the returned knowledge-base value.
 
 `JudgeService.judge` validates the text and claim, then throws `JudgeUnavailableException`. It does not read MongoDB and it does not call Ollama or SpaceXAI. Request types are documents in the `judges` collection. `src/main/resources/mongo/NLP/judges.json` is the import file. `JudgeCatalog` is the catalog API. `XaiVerdictModel` is the SpaceXAI client and stays unwired from `JudgeService`. `OllamaClient` serves any prompt, including a future judge request.
 
